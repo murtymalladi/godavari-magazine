@@ -1,4 +1,4 @@
 # SRK
 
-https://malladisiddu.github.io/ongc
+https://malladisiddu.github.io/devarakonda
 
