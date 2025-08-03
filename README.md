@@ -1,4 +1,4 @@
 # SRK
 
-https://malladisiddu.github.io/devarakonda
+https://malladisiddu.github.io/darbha
 
