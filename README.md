@@ -1,4 +1,4 @@
-# SRK
+# Godavari Magazine
 
-https://malladisiddu.github.io/darbha
+https://murtymalladi.github.io/godavari-magazine
 
