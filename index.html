@@ -31,48 +31,99 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: linear-gradient(45deg, #8B4513, #A0522D, #CD853F);
-      background-size: 20px 20px;
-      background-image: 
-        linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-        linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%),
-        linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%);
-      box-shadow: inset 0 0 50px rgba(0,0,0,0.3);
-      transition: all 3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      background: 
+        linear-gradient(90deg, transparent 0%, rgba(139,69,19,0.1) 8%, transparent 16%),
+        linear-gradient(90deg, transparent 16%, rgba(139,69,19,0.1) 24%, transparent 32%),
+        linear-gradient(90deg, transparent 32%, rgba(139,69,19,0.1) 40%, transparent 48%),
+        linear-gradient(90deg, transparent 48%, rgba(139,69,19,0.1) 56%, transparent 64%),
+        linear-gradient(90deg, transparent 64%, rgba(139,69,19,0.1) 72%, transparent 80%),
+        linear-gradient(90deg, transparent 80%, rgba(139,69,19,0.1) 88%, transparent 96%),
+        linear-gradient(to bottom, #722F37, #8B4513, #A0522D);
+      background-size: 100% 100%;
+      box-shadow: 
+        inset 0 0 100px rgba(0,0,0,0.4),
+        inset 10px 0 20px rgba(0,0,0,0.3),
+        inset -10px 0 20px rgba(0,0,0,0.3);
+      transition: all 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       transform-origin: center top;
       overflow: hidden;
     }
     
+    /* Create vertical pleats using multiple pseudo-elements */
     .curtain-panel::before {
       content: '';
       position: absolute;
       top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 2px;
+      left: 0;
+      width: 100%;
       height: 100%;
-      background: linear-gradient(to bottom, #654321, #8B4513);
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      background: 
+        repeating-linear-gradient(90deg,
+          transparent 0%,
+          rgba(0,0,0,0.15) 4%,
+          rgba(255,255,255,0.05) 8%,
+          rgba(0,0,0,0.15) 12%,
+          transparent 16%
+        );
+      z-index: 1;
     }
     
     .curtain-panel::after {
       content: '';
       position: absolute;
-      bottom: 0;
+      top: 0;
       left: 0;
       width: 100%;
-      height: 20px;
-      background: linear-gradient(to top, rgba(0,0,0,0.3), transparent);
+      height: 100%;
+      background: 
+        radial-gradient(ellipse at 12% 50%, rgba(0,0,0,0.3) 0%, transparent 50%),
+        radial-gradient(ellipse at 28% 50%, rgba(0,0,0,0.3) 0%, transparent 50%),
+        radial-gradient(ellipse at 44% 50%, rgba(0,0,0,0.3) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 50%, rgba(0,0,0,0.3) 0%, transparent 50%),
+        radial-gradient(ellipse at 76% 50%, rgba(0,0,0,0.3) 0%, transparent 50%),
+        radial-gradient(ellipse at 92% 50%, rgba(0,0,0,0.3) 0%, transparent 50%);
+      background-size: 100% 100%;
+      z-index: 2;
     }
     
-    /* Curtain gathering animation - creates the bunched up effect */
-    .curtain-open .curtain-panel {
-      transform: scaleY(0.1) translateY(-45%);
-      border-radius: 0 0 50% 50%;
+    /* Individual curtain folds */
+    .curtain-fold {
+      position: absolute;
+      top: 0;
+      width: 12%;
+      height: 100%;
+      background: linear-gradient(to right, 
+        rgba(0,0,0,0.2) 0%, 
+        rgba(255,255,255,0.1) 50%, 
+        rgba(0,0,0,0.2) 100%);
       box-shadow: 
-        inset 0 0 50px rgba(0,0,0,0.3),
-        0 10px 30px rgba(0,0,0,0.5);
+        inset 2px 0 5px rgba(0,0,0,0.3),
+        inset -2px 0 5px rgba(0,0,0,0.3);
+      transform-origin: center top;
+      transition: all 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .curtain-fold:nth-child(1) { left: 8%; animation-delay: 0.1s; }
+    .curtain-fold:nth-child(2) { left: 20%; animation-delay: 0.2s; }
+    .curtain-fold:nth-child(3) { left: 32%; animation-delay: 0.3s; }
+    .curtain-fold:nth-child(4) { left: 44%; animation-delay: 0.4s; }
+    .curtain-fold:nth-child(5) { left: 56%; animation-delay: 0.3s; }
+    .curtain-fold:nth-child(6) { left: 68%; animation-delay: 0.2s; }
+    .curtain-fold:nth-child(7) { left: 80%; animation-delay: 0.1s; }
+    
+    /* Curtain gathering animation - creates realistic bunching */
+    .curtain-open .curtain-panel {
+      transform: scaleY(0.08) translateY(-46%);
+      border-radius: 0 0 60% 60%;
+      box-shadow: 
+        inset 0 0 80px rgba(0,0,0,0.5),
+        0 15px 40px rgba(0,0,0,0.6);
+      background-size: 100% 20%;
+    }
+    
+    .curtain-open .curtain-fold {
+      transform: scaleY(0.05) translateY(-47%) rotateX(15deg);
+      opacity: 0.8;
     }
     
     .curtain-rope-system {
@@ -115,16 +166,107 @@
       top: 0;
       left: 0;
       width: 100%;
+      height: 12px;
+      background: linear-gradient(to bottom, #E6E6FA, #C0C0C0, #808080, #696969);
+      border-radius: 6px;
+      box-shadow: 0 3px 15px rgba(0,0,0,0.4);
+      z-index: 10;
+    }
+    
+    .curtain-rod::before {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      right: 2px;
+      height: 2px;
+      background: linear-gradient(to right, rgba(255,255,255,0.8), transparent, rgba(255,255,255,0.8));
+      border-radius: 1px;
+    }
+    
+    /* Curtain rings/grommets */
+    .curtain-ring {
+      position: absolute;
+      top: -2px;
+      width: 16px;
+      height: 16px;
+      background: radial-gradient(circle, #C0C0C0, #808080);
+      border: 2px solid #696969;
+      border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      z-index: 9;
+    }
+    
+    .curtain-ring:nth-child(1) { left: 5%; }
+    .curtain-ring:nth-child(2) { left: 15%; }
+    .curtain-ring:nth-child(3) { left: 25%; }
+    .curtain-ring:nth-child(4) { left: 35%; }
+    .curtain-ring:nth-child(5) { left: 45%; }
+    .curtain-ring:nth-child(6) { left: 55%; }
+    .curtain-ring:nth-child(7) { left: 65%; }
+    .curtain-ring:nth-child(8) { left: 75%; }
+    .curtain-ring:nth-child(9) { left: 85%; }
+    .curtain-ring:nth-child(10) { left: 95%; }
+    
+    /* Curtain tiebacks */
+    .curtain-tieback {
+      position: absolute;
+      top: 40%;
+      width: 60px;
       height: 8px;
-      background: linear-gradient(to bottom, #C0C0C0, #808080);
+      background: linear-gradient(45deg, #8B4513, #A0522D);
       border-radius: 4px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      transform: rotate(-15deg);
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 3.5s ease-in-out;
+    }
+    
+    .curtain-tieback.left {
+      left: -30px;
+      transform: rotate(15deg);
+    }
+    
+    .curtain-tieback.right {
+      right: -30px;
+      transform: rotate(-15deg);
+    }
+    
+    .curtain-open .curtain-tieback {
+      opacity: 1;
     }
     
     @keyframes rope-pull {
       0% { transform: translateX(-50%) translateY(0); }
       50% { transform: translateX(-50%) translateY(-10px); }
       100% { transform: translateX(-50%) translateY(0); }
+    }
+    
+    @keyframes curtain-sway {
+      0% { transform: skewX(0deg); }
+      50% { transform: skewX(0.5deg); }
+      100% { transform: skewX(0deg); }
+    }
+    
+    @keyframes fold-flutter {
+      0% { transform: scaleX(1) rotateY(0deg); }
+      50% { transform: scaleX(1.02) rotateY(1deg); }
+      100% { transform: scaleX(1) rotateY(0deg); }
+    }
+    
+    /* Add subtle movement to curtain before opening */
+    .curtain-panel {
+      animation: curtain-sway 4s ease-in-out infinite;
+    }
+    
+    .curtain-fold {
+      animation: fold-flutter 3s ease-in-out infinite;
+    }
+    
+    .curtain-fold:nth-child(odd) {
+      animation-delay: 0.5s;
+      animation-direction: reverse;
     }
     
     #flipbookContainer {
@@ -161,12 +303,37 @@
 
   <!-- Curtain Opening Effect -->
   <div class="curtain-container" id="curtainContainer">
-    <div class="curtain-rod"></div>
-    <div class="curtain-panel" id="curtainPanel"></div>
+    <div class="curtain-rod">
+      <div class="curtain-ring"></div>
+      <div class="curtain-ring"></div>
+      <div class="curtain-ring"></div>
+      <div class="curtain-ring"></div>
+      <div class="curtain-ring"></div>
+      <div class="curtain-ring"></div>
+      <div class="curtain-ring"></div>
+      <div class="curtain-ring"></div>
+      <div class="curtain-ring"></div>
+      <div class="curtain-ring"></div>
+    </div>
+    
+    <div class="curtain-panel" id="curtainPanel">
+      <div class="curtain-fold"></div>
+      <div class="curtain-fold"></div>
+      <div class="curtain-fold"></div>
+      <div class="curtain-fold"></div>
+      <div class="curtain-fold"></div>
+      <div class="curtain-fold"></div>
+      <div class="curtain-fold"></div>
+    </div>
+    
+    <div class="curtain-tieback left"></div>
+    <div class="curtain-tieback right"></div>
+    
     <div class="curtain-rope-system">
       <div class="curtain-pulley"></div>
       <div class="curtain-rope"></div>
     </div>
+    
     <div class="magazine-title" id="magazineTitle">Godavari Magazine</div>
   </div>
 
