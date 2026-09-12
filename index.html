@@ -14,7 +14,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
   
   <style>
-    /* Curtain Opening Animation */
+    /* =========================================================
+       Curtain — built from gathered vertical folds rather than a
+       flat panel that shrinks. Each fold is a real 3D plane that
+       hinges as the fabric bunches toward the proscenium.
+       ========================================================= */
+
     .curtain-container {
       position: fixed;
       top: 0;
@@ -23,525 +28,333 @@
       height: 100%;
       z-index: 9999;
       pointer-events: none;
-    }
-    
-    .curtain-panel {
-      position: absolute;
-      top: 0;
-      width: 50%;
-      height: 100%;
-      background: 
-        linear-gradient(90deg, transparent 0%, rgba(220,20,60,0.1) 8%, transparent 16%),
-        linear-gradient(90deg, transparent 16%, rgba(220,20,60,0.1) 24%, transparent 32%),
-        linear-gradient(90deg, transparent 32%, rgba(220,20,60,0.1) 40%, transparent 48%),
-        linear-gradient(90deg, transparent 48%, rgba(220,20,60,0.1) 56%, transparent 64%),
-        linear-gradient(90deg, transparent 64%, rgba(220,20,60,0.1) 72%, transparent 80%),
-        linear-gradient(90deg, transparent 80%, rgba(220,20,60,0.1) 88%, transparent 96%),
-        linear-gradient(to bottom, #8B0000, #DC143C, #B22222);
-      background-size: 100% 100%;
-      box-shadow: 
-        inset 0 0 100px rgba(0,0,0,0.4),
-        inset 10px 0 20px rgba(0,0,0,0.3),
-        inset -10px 0 20px rgba(0,0,0,0.3);
-      transition: all 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      transform-origin: center center;
       overflow: hidden;
-      z-index: 5;
+      /* Perspective is what lets the folds turn away from the viewer
+         instead of just squashing. Origin sits a little above centre,
+         as if you were seated in the stalls. */
+      perspective: 1500px;
+      perspective-origin: 50% 42%;
+      background: transparent;
     }
-    
-    .curtain-panel.left {
-      left: 0;
-    }
-    
-    .curtain-panel.right {
-      right: 0;
-    }
-    
-    /* Create vertical pleats using multiple pseudo-elements */
-    .curtain-panel::before {
-      content: '';
+
+    /* Warm light spilling from the stage as the fabric parts */
+    .stage-glow {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: 
-        repeating-linear-gradient(90deg,
-          transparent 0%,
-          rgba(0,0,0,0.15) 4%,
-          rgba(255,255,255,0.05) 8%,
-          rgba(0,0,0,0.15) 12%,
-          transparent 16%
-        );
+      background:
+        radial-gradient(ellipse 45% 60% at 50% 45%,
+          rgba(255, 226, 160, 0.38) 0%,
+          rgba(255, 190, 90, 0.16) 38%,
+          transparent 72%);
+      opacity: 0;
       z-index: 1;
     }
-    
-    .curtain-panel::after {
+
+    .curtain-panel {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 50%;
+      transform-style: preserve-3d;
+      z-index: 5;
+    }
+
+    .curtain-panel.left  { left: 0; }
+    .curtain-panel.right { left: 50%; }
+
+    /* One fold of fabric */
+    .fold {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      will-change: transform;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+    }
+
+    .fold-face {
+      width: 100%;
+      height: 100%;
+      will-change: transform, filter;
+      /* Cylindrical shading across the fold, so each one reads as a
+         rounded tube of cloth rather than a flat strip. Then velvet
+         colour, then a fine weave. */
+      background:
+        linear-gradient(90deg,
+          rgba(0, 0, 0, 0.62) 0%,
+          rgba(0, 0, 0, 0.20) 16%,
+          rgba(255, 235, 220, 0.14) 44%,
+          rgba(255, 235, 220, 0.05) 58%,
+          rgba(0, 0, 0, 0.26) 80%,
+          rgba(0, 0, 0, 0.66) 100%),
+        linear-gradient(180deg,
+          #4E060E 0%,
+          #8E0F1B 14%,
+          #A81421 42%,
+          #8A0E1A 74%,
+          #4A050D 100%),
+        repeating-linear-gradient(90deg,
+          rgba(0, 0, 0, 0.05) 0px,
+          rgba(0, 0, 0, 0.05) 1px,
+          transparent 1px,
+          transparent 3px);
+      background-blend-mode: normal, normal, overlay;
+    }
+
+    /* Weighted hem: real curtains have lead tape sewn in, so the
+       bottom edge is darker and sits heavier than the body. */
+    .fold-face::after {
       content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 9%;
+      background: linear-gradient(to bottom,
+        transparent, rgba(0, 0, 0, 0.45) 70%, rgba(0, 0, 0, 0.6));
+      pointer-events: none;
+    }
+
+    /* Pelmet / valance hiding the track */
+    .valance {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
-      height: 100%;
-      background: 
-        radial-gradient(ellipse at 25% 50%, rgba(0,0,0,0.3) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.3) 0%, transparent 50%),
-        radial-gradient(ellipse at 75% 50%, rgba(0,0,0,0.3) 0%, transparent 50%);
-      background-size: 100% 100%;
-      z-index: 2;
+      height: 8%;
+      z-index: 20;
+      background:
+        repeating-linear-gradient(90deg,
+          rgba(0, 0, 0, 0.35) 0%,
+          rgba(255, 235, 220, 0.10) 2.5%,
+          rgba(0, 0, 0, 0.35) 5%),
+        linear-gradient(180deg, #7E0C18, #A81421 45%, #61080F);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
     }
-    
-    /* Center seam line */
-    .curtain-panel.left::after {
-      background: 
-        linear-gradient(to left, rgba(0,0,0,0.4) 0%, transparent 10%),
-        radial-gradient(ellipse at 25% 50%, rgba(0,0,0,0.3) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.3) 0%, transparent 50%),
-        radial-gradient(ellipse at 75% 50%, rgba(0,0,0,0.3) 0%, transparent 50%);
-    }
-    
-    .curtain-panel.right::after {
-      background: 
-        linear-gradient(to right, rgba(0,0,0,0.4) 0%, transparent 10%),
-        radial-gradient(ellipse at 25% 50%, rgba(0,0,0,0.3) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.3) 0%, transparent 50%),
-        radial-gradient(ellipse at 75% 50%, rgba(0,0,0,0.3) 0%, transparent 50%);
-    }
-    
-    /* Individual curtain folds */
-    .curtain-fold {
+
+    .valance::after {
+      content: '';
       position: absolute;
-      top: 0;
-      width: 25%;
-      height: 100%;
-      background: linear-gradient(to right, 
-        rgba(0,0,0,0.2) 0%, 
-        rgba(255,255,255,0.1) 50%, 
-        rgba(0,0,0,0.2) 100%);
-      box-shadow: 
-        inset 2px 0 5px rgba(0,0,0,0.3),
-        inset -2px 0 5px rgba(0,0,0,0.3);
-      transform-origin: center center;
-      transition: all 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      bottom: -10px;
+      left: 0;
+      width: 100%;
+      height: 14px;
+      background:
+        radial-gradient(ellipse 3% 100% at 2% 0%, #C9A227 0%, transparent 70%),
+        linear-gradient(180deg, #C9A227, #8A6A12);
+      -webkit-mask-image: repeating-radial-gradient(circle 14px at 14px 0, #000 0 10px, transparent 10px 14px);
+      mask-image: repeating-radial-gradient(circle 14px at 14px 0, #000 0 10px, transparent 10px 14px);
     }
-    
-    .curtain-panel.left .curtain-fold:nth-child(1) { left: 5%; }
-    .curtain-panel.left .curtain-fold:nth-child(2) { left: 30%; }
-    .curtain-panel.left .curtain-fold:nth-child(3) { left: 55%; }
-    .curtain-panel.left .curtain-fold:nth-child(4) { left: 80%; }
-    
-    .curtain-panel.right .curtain-fold:nth-child(1) { left: 5%; }
-    .curtain-panel.right .curtain-fold:nth-child(2) { left: 30%; }
-    .curtain-panel.right .curtain-fold:nth-child(3) { left: 55%; }
-    .curtain-panel.right .curtain-fold:nth-child(4) { left: 80%; }
-    
-    /* Natural sideways opening animation with draping */
-    .curtain-open .curtain-panel.left {
-      transform: translateX(-85%) scaleX(0.3) skewY(-2deg);
-      transform-origin: right center;
-      border-radius: 0 50% 50% 0;
-      box-shadow: 
-        inset 0 0 80px rgba(0,0,0,0.5),
-        10px 0 30px rgba(0,0,0,0.4);
-    }
-    
-    .curtain-open .curtain-panel.right {
-      transform: translateX(85%) scaleX(0.3) skewY(2deg);
-      transform-origin: left center;
-      border-radius: 50% 0 0 50%;
-      box-shadow: 
-        inset 0 0 80px rgba(0,0,0,0.5),
-        -10px 0 30px rgba(0,0,0,0.4);
-    }
-    
-    .curtain-open .curtain-fold {
-      transform: scaleX(0.2) rotateY(25deg) translateZ(10px);
-      opacity: 0.7;
-      box-shadow: 
-        inset 3px 0 8px rgba(0,0,0,0.4),
-        inset -3px 0 8px rgba(0,0,0,0.4);
-    }
-    
-    /* Progressive fold animation for wave-like natural movement */
-    @keyframes fold-gather-left {
-      0% { transform: scaleX(1) rotateY(0deg) translateX(0); }
-      40% { transform: scaleX(0.7) rotateY(15deg) translateX(-10px); }
-      80% { transform: scaleX(0.4) rotateY(25deg) translateX(-15px); }
-      100% { transform: scaleX(0.2) rotateY(30deg) translateX(-20px); }
-    }
-    
-    @keyframes fold-gather-right {
-      0% { transform: scaleX(1) rotateY(0deg) translateX(0); }
-      40% { transform: scaleX(0.7) rotateY(-15deg) translateX(10px); }
-      80% { transform: scaleX(0.4) rotateY(-25deg) translateX(15px); }
-      100% { transform: scaleX(0.2) rotateY(-30deg) translateX(20px); }
-    }
-    
-    .curtain-open .curtain-panel.left .curtain-fold:nth-child(1) {
-      animation: fold-gather-left 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s forwards;
-    }
-    
-    .curtain-open .curtain-panel.left .curtain-fold:nth-child(2) {
-      animation: fold-gather-left 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s forwards;
-    }
-    
-    .curtain-open .curtain-panel.left .curtain-fold:nth-child(3) {
-      animation: fold-gather-left 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards;
-    }
-    
-    .curtain-open .curtain-panel.left .curtain-fold:nth-child(4) {
-      animation: fold-gather-left 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s forwards;
-    }
-    
-    .curtain-open .curtain-panel.right .curtain-fold:nth-child(1) {
-      animation: fold-gather-right 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s forwards;
-    }
-    
-    .curtain-open .curtain-panel.right .curtain-fold:nth-child(2) {
-      animation: fold-gather-right 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s forwards;
-    }
-    
-    .curtain-open .curtain-panel.right .curtain-fold:nth-child(3) {
-      animation: fold-gather-right 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards;
-    }
-    
-    .curtain-open .curtain-panel.right .curtain-fold:nth-child(4) {
-      animation: fold-gather-right 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s forwards;
-    }
-    
-    .curtain-rope-system {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 120px;
-      height: 40px;
-      z-index: 10001;
-    }
-    
-    .curtain-rope {
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 4px;
-      height: 30px;
-      background: linear-gradient(to bottom, #FFD700, #B8860B);
-      border-radius: 2px;
-      animation: rope-pull 3s ease-in-out;
-    }
-    
-    .curtain-pulley {
-      position: absolute;
-      top: 5px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 20px;
-      height: 20px;
-      background: radial-gradient(circle, #444, #222);
-      border-radius: 50%;
-      border: 2px solid #666;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
-    
+
     .curtain-rod {
       position: absolute;
-      top: 0;
+      top: 2%;
       left: 0;
       width: 100%;
-      height: 12px;
-      background: linear-gradient(to bottom, #E6E6FA, #C0C0C0, #808080, #696969);
-      border-radius: 6px;
-      box-shadow: 0 3px 15px rgba(0,0,0,0.4);
-      z-index: 10;
+      height: 10px;
+      z-index: 18;
+      background: linear-gradient(to bottom, #F2EFE6, #C9C4B6 35%, #7E7A70 70%, #55524B);
+      border-radius: 5px;
+      box-shadow: 0 3px 14px rgba(0, 0, 0, 0.5);
     }
-    
-    .curtain-rod::before {
-      content: '';
+
+    .ring {
       position: absolute;
-      top: 2px;
-      left: 2px;
-      right: 2px;
-      height: 2px;
-      background: linear-gradient(to right, rgba(255,255,255,0.8), transparent, rgba(255,255,255,0.8));
-      border-radius: 1px;
-    }
-    
-    /* Curtain rings/grommets */
-    .curtain-ring {
-      position: absolute;
-      top: -2px;
-      width: 16px;
-      height: 16px;
-      background: radial-gradient(circle, #C0C0C0, #808080);
-      border: 2px solid #696969;
+      top: 2%;
+      margin-top: -4px;
+      width: 15px;
+      height: 15px;
+      margin-left: -7.5px;
+      border: 2.5px solid #BFA14A;
       border-radius: 50%;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-      z-index: 9;
+      background: transparent;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+      z-index: 19;
+      will-change: transform;
     }
-    
-    .curtain-ring:nth-child(1) { left: 5%; }
-    .curtain-ring:nth-child(2) { left: 15%; }
-    .curtain-ring:nth-child(3) { left: 25%; }
-    .curtain-ring:nth-child(4) { left: 35%; }
-    .curtain-ring:nth-child(5) { left: 45%; }
-    .curtain-ring:nth-child(6) { left: 55%; }
-    .curtain-ring:nth-child(7) { left: 65%; }
-    .curtain-ring:nth-child(8) { left: 75%; }
-    .curtain-ring:nth-child(9) { left: 85%; }
-    .curtain-ring:nth-child(10) { left: 95%; }
-    
-    /* Curtain tiebacks for sideways opening */
-    .curtain-tieback {
+
+    /* Tieback, only appears once the fabric is gathered */
+    /* Cord cinching the gathered bunch. Width tracks the bunch so it
+       looks like it is holding the cloth, not lying across it. */
+    .tieback {
       position: absolute;
-      top: 35%;
-      width: 80px;
-      height: 12px;
-      background: linear-gradient(45deg, #8B0000, #DC143C, #FFD700);
-      border-radius: 6px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-      z-index: 10;
+      top: 44%;
+      width: 15%;
+      height: 13px;
+      border-radius: 7px;
+      background:
+        repeating-linear-gradient(58deg,
+          rgba(0,0,0,0.22) 0 3px, rgba(255,255,255,0.16) 3px 6px),
+        linear-gradient(180deg, #F0D77A, #A8801C 55%, #5E4708);
+      background-blend-mode: overlay, normal;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.6), inset 0 -2px 4px rgba(0,0,0,0.45);
       opacity: 0;
-      transition: all 3.5s ease-in-out;
+      z-index: 21;
+      transition: opacity 1.1s ease-out;
     }
-    
-    .curtain-tieback::before {
+
+    .tieback::after {
       content: '';
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 60%;
-      height: 3px;
-      background: linear-gradient(to right, #B22222, #DC143C);
-      border-radius: 2px;
+      top: 8px;
+      width: 9px;
+      height: 26px;
+      border-radius: 0 0 5px 5px;
+      background: linear-gradient(180deg, #C9A227, #7E6010);
+      box-shadow: 0 3px 7px rgba(0,0,0,0.55);
     }
-    
-    .curtain-tieback.left {
-      left: 10%;
-      transform: rotate(25deg);
-    }
-    
-    .curtain-tieback.right {
-      right: 10%;
-      transform: rotate(-25deg);
-    }
-    
-    .curtain-open .curtain-tieback {
-      opacity: 1;
-    }
-    
-    .curtain-open .curtain-tieback.left {
-      left: 5%;
-      transform: rotate(35deg);
-    }
-    
-    .curtain-open .curtain-tieback.right {
-      right: 5%;
-      transform: rotate(-35deg);
-    }
-    
-    @keyframes rope-pull {
-      0% { transform: translateX(-50%) translateY(0); }
-      50% { transform: translateX(-50%) translateY(-10px); }
-      100% { transform: translateX(-50%) translateY(0); }
-    }
-    
-    @keyframes curtain-sway {
-      0% { transform: skewX(0deg); }
-      50% { transform: skewX(0.5deg); }
-      100% { transform: skewX(0deg); }
-    }
-    
-    @keyframes fold-flutter {
-      0% { transform: scaleX(1) rotateY(0deg); }
-      50% { transform: scaleX(1.02) rotateY(1deg); }
-      100% { transform: scaleX(1) rotateY(0deg); }
-    }
-    
-    /* Add subtle movement to curtain before opening */
-    .curtain-panel {
-      animation: curtain-sway 4s ease-in-out infinite;
-    }
-    
-    .curtain-fold {
-      animation: fold-flutter 3s ease-in-out infinite;
-    }
-    
-    .curtain-fold:nth-child(odd) {
-      animation-delay: 0.5s;
-      animation-direction: reverse;
-    }
-    
-    /* Natural fabric draping during opening */
-    @keyframes natural-drape-left {
-      0% { transform: translateX(0) scaleX(1) skewY(0deg); }
-      30% { transform: translateX(-20%) scaleX(0.8) skewY(-1deg); }
-      60% { transform: translateX(-60%) scaleX(0.5) skewY(-1.5deg); }
-      100% { transform: translateX(-85%) scaleX(0.3) skewY(-2deg); }
-    }
-    
-    @keyframes natural-drape-right {
-      0% { transform: translateX(0) scaleX(1) skewY(0deg); }
-      30% { transform: translateX(20%) scaleX(0.8) skewY(1deg); }
-      60% { transform: translateX(60%) scaleX(0.5) skewY(1.5deg); }
-      100% { transform: translateX(85%) scaleX(0.3) skewY(2deg); }
-    }
-    
-    .curtain-open .curtain-panel.left {
-      animation: natural-drape-left 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    }
-    
-    .curtain-open .curtain-panel.right {
-      animation: natural-drape-right 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    }
-    
+
+    .tieback.left        { left: 0.5%;  transform: rotate(6deg); }
+    .tieback.left::after { right: 14%; }
+    .tieback.right        { right: 0.5%; transform: rotate(-6deg); }
+    .tieback.right::after { left: 14%; }
+    .tieback.show  { opacity: 1; }
+
     #flipbookContainer {
       opacity: 0;
       transition: opacity 1s ease-in-out;
     }
-    
+
     #flipbookContainer.show {
       opacity: 1;
     }
-    
+
     .magazine-title {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: #FFD700;
+      color: #E8C86A;
       font-size: 3rem;
       font-weight: bold;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-      z-index: 10000;
+      letter-spacing: 0.04em;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+      z-index: 22;
       opacity: 1;
-      transition: opacity 1s ease-in-out;
+      transition: opacity 1.1s ease-in-out;
       font-family: 'Georgia', serif;
+      white-space: nowrap;
     }
-    
+
     .magazine-title.fade-out {
       opacity: 0;
     }
 
+    /* Tap prompt. Browsers refuse to start audio without a gesture, so
+       the opening waits for one — which doubles as the ribbon-cutting. */
+    .enter-prompt {
+      position: absolute;
+      top: 61%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 23;
+      color: rgba(232, 200, 106, 0.85);
+      font: 400 0.95rem 'Georgia', serif;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+      animation: prompt-pulse 2.6s ease-in-out infinite;
+      white-space: nowrap;
+    }
+
+    .enter-prompt.hide { opacity: 0; animation: none; transition: opacity .6s; }
+
+    @keyframes prompt-pulse {
+      0%, 100% { opacity: 0.45; }
+      50%      { opacity: 1; }
+    }
+
+    /* Invisible hit area covering the screen before the opening */
+    #enterGate {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 10050;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    #muteBtn {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 10060;
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-radius: 50%;
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.45);
+      color: #E3C25C;
+      font-size: 15px;
+      line-height: 34px;
+      text-align: center;
+      opacity: 0;
+      transition: opacity .5s;
+    }
+
+    #muteBtn.show { opacity: 0.75; }
+    #muteBtn:hover { opacity: 1; }
+
     /* ---------- Flower shower (pushpa vrishti) ---------- */
-    #petalLayer {
+    #flowerLayer {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      overflow: hidden;
       pointer-events: none;
       z-index: 10005;
     }
 
-    /* Outer element: the fall + horizontal drift */
-    .petal {
+    #flowerLayer canvas {
       position: absolute;
       top: 0;
-      will-change: transform, opacity;
-      animation-name: petal-fall;
-      animation-timing-function: linear;
-      animation-fill-mode: forwards;
-    }
-
-    /* Middle element: side-to-side sway, like a petal catching air */
-    .petal-sway {
+      left: 0;
       width: 100%;
       height: 100%;
-      animation-name: petal-sway;
-      animation-timing-function: ease-in-out;
-      animation-iteration-count: infinite;
-      animation-direction: alternate;
     }
 
-    /* Inner element: tumble/spin */
-    .petal-inner {
-      width: 100%;
-      height: 100%;
-      animation-name: petal-spin;
-      animation-timing-function: linear;
-      animation-iteration-count: infinite;
-      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.28));
-    }
-
-    .petal-inner svg {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    @keyframes petal-fall {
-      0%   { transform: translate3d(0, -14vh, 0); opacity: 0; }
-      6%   { opacity: 1; }
-      92%  { opacity: 1; }
-      100% { transform: translate3d(var(--drift, 0vw), 112vh, 0); opacity: 0.85; }
-    }
-
-    @keyframes petal-sway {
-      0%   { transform: translateX(-1.6vw); }
-      100% { transform: translateX(1.6vw); }
-    }
-
-    @keyframes petal-spin {
-      0%   { transform: rotate3d(1, 0.9, 0.25, 0deg); }
-      100% { transform: rotate3d(1, 0.9, 0.25, 360deg); }
-    }
-
-    /* Respect users who'd rather not have heavy motion */
-    @media (prefers-reduced-motion: reduce) {
-      .petal-sway, .petal-inner { animation: none; }
-    }
+    /* Depth of field: distant flowers are soft and dim, the nearest
+       ones are slightly out of focus too, as a real lens would show them. */
+    #flowerFar  { filter: blur(0.7px); opacity: 0.72; }
+    #flowerMid  { filter: none; }
+    #flowerNear { filter: none; }
   </style>
 
 </head>
 <body>
 
-  <!-- Curtain Opening Effect -->
+  <!-- Curtain -->
   <div class="curtain-container" id="curtainContainer">
-    <div class="curtain-rod">
-      <div class="curtain-ring"></div>
-      <div class="curtain-ring"></div>
-      <div class="curtain-ring"></div>
-      <div class="curtain-ring"></div>
-      <div class="curtain-ring"></div>
-      <div class="curtain-ring"></div>
-      <div class="curtain-ring"></div>
-      <div class="curtain-ring"></div>
-      <div class="curtain-ring"></div>
-      <div class="curtain-ring"></div>
-    </div>
-    
-    <!-- Left curtain panel -->
-    <div class="curtain-panel left" id="curtainPanelLeft">
-      <div class="curtain-fold"></div>
-      <div class="curtain-fold"></div>
-      <div class="curtain-fold"></div>
-      <div class="curtain-fold"></div>
-    </div>
-    
-    <!-- Right curtain panel -->
-    <div class="curtain-panel right" id="curtainPanelRight">
-      <div class="curtain-fold"></div>
-      <div class="curtain-fold"></div>
-      <div class="curtain-fold"></div>
-      <div class="curtain-fold"></div>
-    </div>
-    
-    <div class="curtain-tieback left"></div>
-    <div class="curtain-tieback right"></div>
-    
-    <div class="curtain-rope-system">
-      <div class="curtain-pulley"></div>
-      <div class="curtain-rope"></div>
-    </div>
-    
+
+    <div class="stage-glow" id="stageGlow"></div>
+
+    <!-- Folds are generated by the Curtain module -->
+    <div class="curtain-panel left"  id="panelLeft"></div>
+    <div class="curtain-panel right" id="panelRight"></div>
+
+    <div class="curtain-rod"></div>
+    <div class="valance"></div>
+
+    <div class="tieback left"></div>
+    <div class="tieback right"></div>
+
     <div class="magazine-title" id="magazineTitle">Godavari Magazine</div>
+    <div class="enter-prompt" id="enterPrompt">tap to open</div>
   </div>
 
-  <!-- Falling flowers layer -->
-  <div id="petalLayer"></div>
+  <div id="enterGate"></div>
+  <button id="muteBtn" title="Sound on / off">&#9835;</button>
+  <audio id="openingMusic" src="static/opening.mp3" preload="auto" loop></audio>
+
+  <div id="flowerLayer">
+    <canvas id="flowerFar"></canvas>
+    <canvas id="flowerMid"></canvas>
+    <canvas id="flowerNear"></canvas>
+  </div>
 
   <div id="flipbookContainer">
   </div>
@@ -552,198 +365,849 @@
   <!-- Flipbook main Js file -->
   <script src="lib/js/dflip.min.js" type="text/javascript"></script>
   <!-- Flipbook main Js file -->
-  <!-- Flower shower -->
+  <!-- Opening audio -->
   <script>
-    var FlowerShower = (function () {
+    /* =========================================================
+       Godavari Magazine — opening audio
+       Plays static/opening.mp3 if it exists. If it doesn't, or the
+       file fails to load, falls back to a synthesized temple bell
+       and drone so there is always something. No assets required.
+       ========================================================= */
+    var Sound = (function () {
+      'use strict';
 
-      var CONFIG = {
-        burstDuration: 4500,   // ms of dense shower as the curtains part
-        burstInterval: 70,     // ms between petals during the burst
-        gentleDuration: 11000, // ms of light drizzle afterwards
-        gentleInterval: 420,   // ms between petals during the drizzle
-        minSize: 16,           // px
-        maxSize: 46,           // px
-        minFall: 5.5,          // seconds to cross the screen
-        maxFall: 11
+      var CFG = {
+        file:        'static/opening.mp3',
+        fileVolume:  0.55,
+        droneVolume: 0.16,
+        bellVolume:  0.32,
+        fadeOutMs:   5000,   // music fades out once the magazine is open
+        droneHz:     146.83  // D3, a comfortable Sa
       };
 
-      var layer, burstTimer, gentleTimer, phaseTimer, uid = 0, running = false;
+      var el = null, ctx = null, master = null;
+      var started = false, muted = false, usingFile = false;
+      var nodes = [];
 
+      /* ---------- synthesized fallback ---------- */
+
+      // A struck bell is inharmonic: its partials are not integer
+      // multiples, which is exactly why it sounds like metal and not
+      // like an organ. These ratios are roughly those of a cast bell.
+      var BELL_PARTIALS = [
+        { r: 0.50, g: 0.55, d: 5.0 },
+        { r: 1.00, g: 1.00, d: 4.2 },
+        { r: 1.19, g: 0.42, d: 3.4 },
+        { r: 1.56, g: 0.34, d: 2.6 },
+        { r: 2.00, g: 0.30, d: 2.2 },
+        { r: 2.51, g: 0.20, d: 1.6 },
+        { r: 2.66, g: 0.16, d: 1.4 },
+        { r: 3.01, g: 0.12, d: 1.1 },
+        { r: 4.10, g: 0.08, d: 0.8 }
+      ];
+
+      function strikeBell(at, baseHz, vol) {
+        for (var i = 0; i < BELL_PARTIALS.length; i++) {
+          var p = BELL_PARTIALS[i];
+          var osc = ctx.createOscillator();
+          var g = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = baseHz * p.r;
+          // slight detune per partial keeps it from sounding synthetic
+          osc.detune.value = (Math.random() - 0.5) * 6;
+          g.gain.setValueAtTime(0, at);
+          g.gain.linearRampToValueAtTime(vol * p.g, at + 0.008);
+          g.gain.exponentialRampToValueAtTime(0.0001, at + p.d);
+          osc.connect(g);
+          g.connect(master);
+          osc.start(at);
+          osc.stop(at + p.d + 0.1);
+          nodes.push(osc);
+        }
+      }
+
+      // Tanpura-ish drone: Sa and Pa with a slow shimmer, rolled off
+      // so it sits under everything rather than competing with it.
+      function startDrone(at) {
+        var filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 900;
+        filter.Q.value = 0.6;
+
+        var droneGain = ctx.createGain();
+        droneGain.gain.setValueAtTime(0, at);
+        droneGain.gain.linearRampToValueAtTime(CFG.droneVolume, at + 2.4);
+
+        filter.connect(droneGain);
+        droneGain.connect(master);
+
+        var freqs = [CFG.droneHz, CFG.droneHz * 1.5, CFG.droneHz * 2, CFG.droneHz * 3];
+        var gains = [1.0, 0.55, 0.40, 0.14];
+
+        for (var i = 0; i < freqs.length; i++) {
+          var osc = ctx.createOscillator();
+          var g = ctx.createGain();
+          osc.type = i === 0 ? 'triangle' : 'sine';
+          osc.frequency.value = freqs[i];
+          osc.detune.value = (Math.random() - 0.5) * 8;
+          g.gain.value = gains[i] * 0.25;
+
+          // slow beating so the drone breathes
+          var lfo = ctx.createOscillator();
+          var lfoGain = ctx.createGain();
+          lfo.frequency.value = 0.07 + Math.random() * 0.11;
+          lfoGain.gain.value = gains[i] * 0.06;
+          lfo.connect(lfoGain);
+          lfoGain.connect(g.gain);
+          lfo.start(at);
+          nodes.push(lfo);
+
+          osc.connect(g);
+          g.connect(filter);
+          osc.start(at);
+          nodes.push(osc);
+        }
+        return droneGain;
+      }
+
+      function playSynth() {
+        var t = ctx.currentTime + 0.05;
+        startDrone(t);
+        strikeBell(t + 0.10, 330, CFG.bellVolume);          // the opening strike
+        strikeBell(t + 2.30, 247, CFG.bellVolume * 0.7);    // an answering one
+        strikeBell(t + 4.90, 330, CFG.bellVolume * 0.5);
+      }
+
+      /* ---------- plumbing ---------- */
+
+      function ensureCtx() {
+        if (ctx) return ctx;
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        ctx = new AC();
+        master = ctx.createGain();
+        master.gain.value = 1;
+        master.connect(ctx.destination);
+        return ctx;
+      }
+
+      // Must be called from inside a click or tap. Browsers block audio
+      // that starts without one, which is the whole reason the opening
+      // waits for a gesture.
+      function start() {
+        if (started) return;
+        started = true;
+
+        el = document.getElementById('openingMusic');
+        if (el) {
+          el.volume = 0;
+          var p = el.play();
+          if (p && p.then) {
+            p.then(function () {
+              usingFile = true;
+              fadeEl(0, CFG.fileVolume, 1800);
+            })['catch'](function () {
+              if (ensureCtx()) playSynth();
+            });
+          } else {
+            usingFile = true;
+            fadeEl(0, CFG.fileVolume, 1800);
+          }
+          el.addEventListener('error', function () {
+            if (!usingFile && ensureCtx()) playSynth();
+          });
+        } else if (ensureCtx()) {
+          playSynth();
+        }
+      }
+
+      function fadeEl(from, to, ms) {
+        if (!el) return;
+        var steps = 30, i = 0;
+        var id = setInterval(function () {
+          i++;
+          el.volume = Math.max(0, Math.min(1, from + (to - from) * (i / steps)));
+          if (i >= steps) {
+            clearInterval(id);
+            if (to === 0) { try { el.pause(); } catch (e) {} }
+          }
+        }, ms / steps);
+      }
+
+      // Called once the magazine is open, so the music doesn't compete
+      // with reading or with the page-turn sounds.
+      function fadeOut() {
+        if (usingFile && el) {
+          fadeEl(el.volume, 0, CFG.fadeOutMs);
+        }
+        if (ctx && master) {
+          var now = ctx.currentTime;
+          master.gain.setValueAtTime(master.gain.value, now);
+          master.gain.linearRampToValueAtTime(0.0001, now + CFG.fadeOutMs / 1000);
+        }
+      }
+
+      function toggleMute() {
+        muted = !muted;
+        if (el) el.muted = muted;
+        if (master) master.gain.value = muted ? 0 : 1;
+        return muted;
+      }
+
+      function isMuted() { return muted; }
+
+      return {
+        start: start,
+        fadeOut: fadeOut,
+        toggleMute: toggleMute,
+        isMuted: isMuted,
+        config: CFG
+      };
+    })();
+  </script>
+
+  <!-- Curtain -->
+  <script>
+    /* =========================================================
+       Godavari Magazine — curtain
+       The cloth gathers into hinged folds and bunches at the
+       proscenium. Nothing here scales a flat panel.
+       ========================================================= */
+    var Curtain = (function () {
+      'use strict';
+
+      var CFG = {
+        folds:        18,     // folds per panel
+        bunch:        0.28,   // gathered width as a fraction of the open width
+        restAngle:    7,      // degrees of fold at rest, cloth is never flat
+        gatherAngle:  64,     // degrees when fully bunched
+        pullMs:       3300,   // travel time for a single fold
+        rippleMs:     950,    // lag between the leading edge and the outer edge
+        hemSwing:     3.4,    // degrees the weighted hem trails by
+        overlap:      1.20,   // folds overlap slightly so no gaps show through
+        jitter:       0.16,   // how unevenly the folds stack, in fold widths
+        widthVary:    0.09,   // random variation in fold width
+        angleVary:    7,      // random variation in fold depth, degrees
+        flare:        2.0,    // degrees the gathered hem splays outward
+        glowMax:      0.6
+      };
+
+      var panels = [], rings = [], glow = null, built = false;
+      var t0 = 0, lastNow = 0, raf = null, onDone = null, doneFired = false;
+
+      /* Damped spring. Overshoots a touch and settles, the way cloth does
+         when it reaches the end of its travel, instead of stopping dead
+         on a bezier curve. */
+      function spring(x) {
+        if (x <= 0) return 0;
+        if (x >= 1) return 1;
+        return 1 - Math.exp(-5.2 * x) * Math.cos(6.0 * x);
+      }
+
+      function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+
+      function buildPanel(el, dir) {
+        // dir = +1 gathers to the left edge, -1 gathers to the right edge
+        var n = CFG.folds;
+        var stepPct = 100 / n;          // one fold, as a % of panel width
+        var folds = [], i;
+
+        for (i = 0; i < n; i++) {
+          var fold = document.createElement('div');
+          fold.className = 'fold';
+          // Cloth is never evenly pleated, so every fold gets its own
+          // width, depth and resting place in the stack.
+          var wVary = 1 + (Math.random() - 0.5) * 2 * CFG.widthVary;
+          fold.style.left = (i * stepPct) + '%';
+          fold.style.width = (stepPct * CFG.overlap * wVary) + '%';
+          fold.style.transformOrigin = '50% 0%';   // hinge at the track
+
+          var face = document.createElement('div');
+          face.className = 'fold-face';
+          fold.appendChild(face);
+          el.appendChild(fold);
+
+          // Positions are in "fold widths" from the panel's left edge.
+          var centre = i + 0.5;
+          var jit = (Math.random() - 0.5) * 2 * CFG.jitter;
+          var target = (dir > 0)
+            ? centre * CFG.bunch + jit                        // bunch left
+            : n - n * CFG.bunch + centre * CFG.bunch + jit;   // bunch right
+
+          // translateX percentages resolve against the element's OWN width,
+          // which is one fold times the overlap, so convert.
+          var travelPct = (target - centre) * 100 / CFG.overlap;
+
+          // The pull starts at the leading edge and ripples outward,
+          // because the cloth is dragged, not teleported.
+          var fromLead = (dir > 0) ? (n - 1 - i) : i;
+
+          folds.push({
+            el: fold,
+            face: face,
+            centre: centre,
+            target: target,
+            travelPct: travelPct,
+            stepPct: stepPct,
+            delay: (fromLead / (n - 1)) * CFG.rippleMs,
+            sign: (i % 2 === 0) ? 1 : -1,
+            angleVary: (Math.random() - 0.5) * 2 * CFG.angleVary,
+            // Folds on the outside of the stack splay furthest at the hem
+            flare: CFG.flare * (1 - fromLead / (n - 1)) * dir,
+            prevE: 0
+          });
+        }
+        return { el: el, dir: dir, folds: folds };
+      }
+
+      function buildRings(container) {
+        for (var p = 0; p < panels.length; p++) {
+          for (var i = 0; i < panels[p].folds.length; i++) {
+            var r = document.createElement('div');
+            r.className = 'ring';
+            container.appendChild(r);
+            rings.push({ el: r, fold: panels[p].folds[i], panelOffset: p * 50 });
+          }
+        }
+      }
+
+      function build() {
+        if (built) return true;
+        var left = document.getElementById('panelLeft');
+        var right = document.getElementById('panelRight');
+        var container = document.getElementById('curtainContainer');
+        if (!left || !right || !container) return false;
+
+        glow = document.getElementById('stageGlow');
+        panels.push(buildPanel(left, 1));
+        panels.push(buildPanel(right, -1));
+        buildRings(container);
+        built = true;
+        apply(0, 0);
+        return true;
+      }
+
+      /* Place every fold for a given elapsed time. */
+      function apply(now, dt) {
+        var p, i, f, local, e, vel, angle, hem, shade, bright;
+
+        for (p = 0; p < panels.length; p++) {
+          for (i = 0; i < panels[p].folds.length; i++) {
+            f = panels[p].folds[i];
+
+            local = clamp((now - f.delay) / CFG.pullMs, 0, 1);
+            e = spring(local);
+
+            // Velocity drives the hem swing: the weighted bottom edge lags
+            // while the curtain is moving, then catches up and settles.
+            vel = dt > 0 ? (e - f.prevE) / dt : 0;
+            f.prevE = e;
+            hem = clamp(-vel * 950 * panels[p].dir, -CFG.hemSwing, CFG.hemSwing);
+
+            // Folds deepen as the cloth gathers
+            angle = CFG.restAngle + (CFG.gatherAngle - CFG.restAngle) * e + f.angleVary * e;
+
+            // The gathered hem splays outward, so the stack is a wedge
+            // rather than a rectangle with a ruled edge.
+            f.el.style.transform =
+              'translateX(' + (f.travelPct * e).toFixed(3) + '%) ' +
+              'rotateZ(' + (hem + f.flare * e).toFixed(2) + 'deg)';
+            f.face.style.transform =
+              'rotateY(' + (angle * f.sign).toFixed(2) + 'deg)';
+
+            // Alternating faces catch and lose the light, which is what
+            // gives gathered fabric its banded look.
+            shade = Math.sin(angle * Math.PI / 180);
+            bright = f.sign > 0 ? (1 + 0.20 * shade) : (1 - 0.50 * shade);
+            f.face.style.filter = 'brightness(' + bright.toFixed(3) + ')';
+          }
+        }
+
+        // Rings slide along the track with their fold. Positions are in
+        // screen %, and each panel is half the screen wide.
+        for (i = 0; i < rings.length; i++) {
+          f = rings[i].fold;
+          local = clamp((now - f.delay) / CFG.pullMs, 0, 1);
+          e = spring(local);
+          var posInPanel = (f.centre + (f.target - f.centre) * e) * f.stepPct;
+          rings[i].el.style.left = (rings[i].panelOffset + posInPanel * 0.5) + '%';
+        }
+
+        if (glow) {
+          var openness = clamp((now - CFG.rippleMs * 0.25) / (CFG.pullMs * 0.9), 0, 1);
+          glow.style.opacity = (spring(openness) * CFG.glowMax).toFixed(3);
+        }
+      }
+
+      function frame(ts) {
+        if (!t0) { t0 = ts; lastNow = 0; }
+        var now = ts - t0;
+        var dt = Math.min(50, now - lastNow);
+        lastNow = now;
+
+        apply(now, dt);
+
+        if (now < CFG.pullMs + CFG.rippleMs + 500) {
+          raf = requestAnimationFrame(frame);
+        } else {
+          raf = null;
+          if (!doneFired) {
+            doneFired = true;
+            var tb = document.querySelectorAll('.tieback');
+            for (var i = 0; i < tb.length; i++) {
+              tb[i].className = tb[i].className + ' show';
+            }
+            if (onDone) onDone();
+          }
+        }
+      }
+
+      function open(callback) {
+        if (!build()) return;
+        onDone = callback || null;
+        doneFired = false;
+        t0 = 0;
+        lastNow = 0;
+        if (!raf) raf = requestAnimationFrame(frame);
+      }
+
+      function reset() {
+        if (raf) { cancelAnimationFrame(raf); raf = null; }
+        t0 = 0; lastNow = 0; doneFired = false;
+        for (var p = 0; p < panels.length; p++) {
+          for (var i = 0; i < panels[p].folds.length; i++) panels[p].folds[i].prevE = 0;
+        }
+        var tb = document.querySelectorAll('.tieback');
+        for (var j = 0; j < tb.length; j++) {
+          tb[j].className = tb[j].className.replace(/\s*show/g, '');
+        }
+        apply(0, 0);
+      }
+
+      function rebuild() {
+        if (raf) { cancelAnimationFrame(raf); raf = null; }
+        var left = document.getElementById('panelLeft');
+        var right = document.getElementById('panelRight');
+        var i, old;
+        if (left) left.innerHTML = '';
+        if (right) right.innerHTML = '';
+        old = document.querySelectorAll('#curtainContainer .ring');
+        for (i = 0; i < old.length; i++) old[i].parentNode.removeChild(old[i]);
+        panels = []; rings = []; built = false;
+        build();
+      }
+
+      return { build: build, open: open, reset: reset, rebuild: rebuild, config: CFG };
+    })();
+  </script>
+
+  <!-- Flower shower -->
+  <script>
+    /* =========================================================
+       Godavari Magazine — flower shower
+       Canvas particle system with a simple aerodynamic model.
+       Independent of jQuery and dflip.
+       ========================================================= */
+    var FlowerShower = (function () {
+      'use strict';
+
+      var VERSION = 'flower-shower v2 (canvas/physics)';
+
+      var CFG = {
+        maxPetals:     300,     // hard ceiling, thinned automatically on small screens
+        burstMs:       5200,    // dense shower while the curtains part
+        burstRate:     48,      // petals per second
+        gentleMs:      15000,   // light drizzle afterwards
+        gentleRate:    5,
+        gravity:       620,     // px/s^2
+        dragK:         0.030,   // quadratic drag coefficient
+        liftAmp:       240,     // sideways force generated as a petal flips
+        windAmp:       95,      // strength of the coherent gust field
+        minSize:       2.5,
+        maxSize:       8.5
+      };
+
+      var layers = {}, petals = [], raf = null, dpr = 1;
+      var W = 0, H = 0, lastT = 0, elapsed = 0, spawnAcc = 0;
+      var phase = 'idle';   // idle | burst | gentle | draining
       var reduced = window.matchMedia &&
                     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      function rand(min, max) { return Math.random() * (max - min) + min; }
-      function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+      function rand(a, b) { return Math.random() * (b - a) + a; }
+      function pick(a) { return a[(Math.random() * a.length) | 0]; }
 
-      function svg(body) {
-        return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + body + '</svg>';
+      /* ---------- palettes ---------- */
+      // Each entry: [face light, face dark, underside] — real petals are
+      // paler and duller on the back, which is visible as they tumble.
+      var MARIGOLD = [
+        ['#FFA71F', '#E8620A', '#F8CE84'],
+        ['#FFD24A', '#F09A05', '#FDE6A8'],
+        ['#FF8C12', '#C94A05', '#F3BC72']
+      ];
+      var ROSE = [
+        ['#F2718A', '#B3123F', '#F6B7C4'],
+        ['#E8455F', '#96062F', '#F0A0AE'],
+        ['#FF7EA3', '#C2185B', '#FBC2D2']
+      ];
+      var JASMINE = [
+        ['#FFFDF7', '#E8DCC6', '#FFFFFF'],
+        ['#FFF6E5', '#DFD0B4', '#FFFDF6']
+      ];
+
+      /* ---------- shape drawing (unit petal, size s) ---------- */
+
+      function drawRose(ctx, s, col, back) {
+        var g = ctx.createLinearGradient(0, -s * 0.5, 0, s * 0.5);
+        if (back) {
+          g.addColorStop(0, col[2]);
+          g.addColorStop(1, col[0]);
+        } else {
+          g.addColorStop(0, col[0]);
+          g.addColorStop(1, col[1]);
+        }
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(0, -s * 0.50);
+        ctx.bezierCurveTo(s * 0.56, -s * 0.30, s * 0.64, s * 0.18, 0, s * 0.50);
+        ctx.bezierCurveTo(-s * 0.64, s * 0.18, -s * 0.56, -s * 0.30, 0, -s * 0.50);
+        ctx.closePath();
+        ctx.fill();
+        // central vein
+        ctx.strokeStyle = 'rgba(0,0,0,0.10)';
+        ctx.lineWidth = Math.max(0.5, s * 0.02);
+        ctx.beginPath();
+        ctx.moveTo(0, -s * 0.42);
+        ctx.lineTo(0, s * 0.40);
+        ctx.stroke();
       }
 
-      // Marigold — the banthi puvvu of every Godavari doorway
-      function marigold() {
-        var outer = pick(['#FF8C00', '#FF7518', '#F4770A', '#FFB000']);
-        var inner = pick(['#FFC30B', '#FFD447', '#F5B700']);
-        var body = '', i;
+      function drawMarigold(ctx, s, col, back) {
+        var outer = back ? col[2] : col[0];
+        var inner = back ? col[0] : col[1];
+        var i;
+        ctx.fillStyle = outer;
         for (i = 0; i < 12; i++) {
-          body += '<ellipse cx="50" cy="26" rx="11" ry="19" fill="' + outer +
-                  '" transform="rotate(' + (i * 30) + ' 50 50)"/>';
+          ctx.save();
+          ctx.rotate(i * Math.PI / 6);
+          ctx.beginPath();
+          ctx.ellipse(0, -s * 0.25, s * 0.115, s * 0.20, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
         }
-        for (i = 0; i < 10; i++) {
-          body += '<ellipse cx="50" cy="36" rx="8.5" ry="14" fill="' + inner +
-                  '" transform="rotate(' + (i * 36 + 18) + ' 50 50)"/>';
+        ctx.fillStyle = inner;
+        for (i = 0; i < 9; i++) {
+          ctx.save();
+          ctx.rotate(i * Math.PI * 2 / 9 + 0.35);
+          ctx.beginPath();
+          ctx.ellipse(0, -s * 0.15, s * 0.09, s * 0.145, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
         }
-        body += '<circle cx="50" cy="50" r="9" fill="' + inner + '"/>';
-        return svg(body);
+        ctx.beginPath();
+        ctx.arc(0, 0, s * 0.09, 0, Math.PI * 2);
+        ctx.fill();
       }
 
-      // Single rose petal
-      function rosePetal() {
-        var top = pick(['#F0607C', '#E23E57', '#D81E5B', '#FF5C8A']);
-        var bottom = pick(['#B3123F', '#A0113C', '#C2185B']);
-        var id = 'pg' + (uid++);
-        return svg(
-          '<defs><linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1">' +
-          '<stop offset="0" stop-color="' + top + '"/>' +
-          '<stop offset="1" stop-color="' + bottom + '"/></linearGradient></defs>' +
-          '<path d="M50 4 C78 22 93 48 78 74 C68 92 50 98 50 98 ' +
-          'C50 98 32 92 22 74 C7 48 22 22 50 4 Z" fill="url(#' + id + ')"/>'
+      function drawJasmine(ctx, s, col, back) {
+        ctx.fillStyle = back ? col[2] : col[0];
+        for (var i = 0; i < 5; i++) {
+          ctx.save();
+          ctx.rotate(i * Math.PI * 2 / 5);
+          ctx.beginPath();
+          ctx.ellipse(0, -s * 0.26, s * 0.155, s * 0.23, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.fillStyle = back ? '#EFD9A0' : '#F2B705';
+        ctx.beginPath();
+        ctx.arc(0, 0, s * 0.085, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      var KINDS = [
+        { draw: drawRose,     pal: ROSE,     w: 4 },
+        { draw: drawMarigold, pal: MARIGOLD, w: 4 },
+        { draw: drawJasmine,  pal: JASMINE,  w: 2 }
+      ];
+
+      function pickKind() {
+        var r = Math.random() * 10;
+        return r < 4 ? KINDS[0] : (r < 8 ? KINDS[1] : KINDS[2]);
+      }
+
+      /* ---------- coherent wind field ----------
+         A sum of slow sines. Because every petal samples the same
+         function, they drift together as if moved by one body of air,
+         rather than each wandering on its own. That coherence is what
+         sells it as wind instead of noise. */
+      function wind(t, y) {
+        return CFG.windAmp * (
+          0.55 * Math.sin(t * 0.31 + y * 0.0016) +
+          0.30 * Math.sin(t * 0.74 + 1.7) +
+          0.15 * Math.sin(t * 1.63 + y * 0.004 + 2.9)
         );
       }
 
-      // Five-petal jasmine / mallepuvvu
-      function jasmine() {
-        var petal = pick(['#FFFDF7', '#FFF6E5', '#FDF3E3']);
-        var eye = pick(['#F6C445', '#F2B705']);
-        var body = '', i;
-        for (i = 0; i < 5; i++) {
-          body += '<ellipse cx="50" cy="28" rx="15" ry="23" fill="' + petal +
-                  '" transform="rotate(' + (i * 72) + ' 50 50)"/>';
+      /* ---------- particle ---------- */
+      function makePetal(fromEdge) {
+        var z = Math.random();                      // 0 = far, 1 = near
+        var kind = pickKind();
+        var size = CFG.minSize + (CFG.maxSize - CFG.minSize) * (0.25 + 0.75 * z);
+
+        var p = {
+          z: z,
+          kind: kind,
+          col: pick(kind.pal),
+          size: size,
+          mass: size / 4.2,
+          x: 0, y: 0, vx: 0, vy: 0,
+          flip: rand(0, Math.PI * 2),               // rotation about the long axis
+          flipSpeed: rand(1.6, 4.4) * (Math.random() < 0.5 ? -1 : 1),
+          roll: rand(0, Math.PI * 2),               // rotation in the picture plane
+          rollSpeed: rand(-1.1, 1.1),
+          lift: rand(0.7, 1.35),
+          alpha: 0.55 + 0.45 * z
+        };
+
+        if (fromEdge) {
+          // thrown in from an upper corner, the way flowers are actually tossed
+          var left = Math.random() < 0.5;
+          p.x = left ? -size : W + size;
+          p.y = rand(-size, H * 0.30);
+          p.vx = (left ? 1 : -1) * rand(180, 330);
+          p.vy = rand(20, 90);
+        } else {
+          p.x = rand(-0.06 * W, 1.06 * W);
+          p.y = rand(-size * 2.5, -size);
+          p.vx = rand(-40, 40);
+          p.vy = rand(30, 110);
         }
-        body += '<circle cx="50" cy="50" r="8" fill="' + eye + '"/>';
-        return svg(body);
+        return p;
       }
 
-      var makers = [marigold, marigold, rosePetal, rosePetal, jasmine];
+      /* ---------- integration ---------- */
+      function step(p, dt, t) {
+        // Frontal area swings between broad-side-on and edge-on as the petal
+        // flips. Broad side = more drag = it slows and slides; edge-on = it
+        // knifes downward. That alternation is the whole character of a
+        // falling petal, so drag is driven by the flip angle.
+        var c = Math.cos(p.flip);
+        var area = 0.32 + 0.68 * Math.abs(c);
 
-      function spawn() {
-        if (!layer) return;
+        // Forces act on velocity relative to the moving air, not the ground.
+        var relx = p.vx - wind(t, p.y);
+        var rely = p.vy;
+        var relSpeed = Math.sqrt(relx * relx + rely * rely) + 1e-3;
 
-        var size = rand(CONFIG.minSize, CONFIG.maxSize);
-        var depth = (size - CONFIG.minSize) / (CONFIG.maxSize - CONFIG.minSize); // 0 far, 1 near
+        // Quadratic drag, scaled by area and divided by mass: big heavy
+        // flowers punch through and fall fast, small light ones hang.
+        var drag = CFG.dragK * area * relSpeed / p.mass;
 
-        var petal = document.createElement('div');
-        petal.className = 'petal';
-        petal.style.left = rand(-6, 100) + 'vw';
-        petal.style.width = size + 'px';
-        petal.style.height = size + 'px';
-        petal.style.opacity = (0.55 + depth * 0.45).toFixed(2);
-        petal.style.setProperty('--drift', rand(-16, 16).toFixed(1) + 'vw');
-        // Smaller petals read as further away, so they fall more slowly
-        petal.style.animationDuration =
-          rand(CONFIG.maxFall - depth * (CONFIG.maxFall - CONFIG.minFall) - 1.5,
-               CONFIG.maxFall - depth * (CONFIG.maxFall - CONFIG.minFall) + 1.5).toFixed(2) + 's';
+        // Lift alternates direction every half flip, which is what makes a
+        // petal zig-zag down instead of drifting randomly.
+        var lift = CFG.liftAmp * p.lift * Math.sin(p.flip) * area / p.mass;
 
-        var sway = document.createElement('div');
-        sway.className = 'petal-sway';
-        sway.style.animationDuration = rand(1.8, 4.2).toFixed(2) + 's';
-        sway.style.animationDelay = '-' + rand(0, 3).toFixed(2) + 's';
+        var ax = lift - drag * relx;
+        var ay = CFG.gravity - drag * rely;
 
-        var inner = document.createElement('div');
-        inner.className = 'petal-inner';
-        inner.style.animationDuration = rand(2.5, 7).toFixed(2) + 's';
-        inner.style.animationDirection = Math.random() < 0.5 ? 'normal' : 'reverse';
-        inner.innerHTML = pick(makers)();
+        p.vx += ax * dt;
+        p.vy += ay * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
 
-        sway.appendChild(inner);
-        petal.appendChild(sway);
+        // Flipping speeds up as the petal moves faster through the air
+        p.flip += p.flipSpeed * dt * (0.55 + 0.45 * Math.min(2, relSpeed / 220));
+        p.roll += p.rollSpeed * dt;
+      }
 
-        // animationend bubbles up from the sway/spin children, so check the target
-        petal.addEventListener('animationend', function (e) {
-          if (e.target === petal && petal.parentNode) {
-            petal.parentNode.removeChild(petal);
+      function draw(ctx, p) {
+        var c = Math.cos(p.flip);
+        var squash = Math.abs(c);
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.roll);
+        // Foreshortening: a flat petal seen edge-on collapses to a sliver.
+        ctx.scale(Math.max(0.05, squash), 1);
+        // Edge-on petals catch less light
+        if (squash < 0.4) ctx.globalAlpha = p.alpha * (0.45 + 0.55 * squash / 0.4);
+        p.kind.draw(ctx, p.size, p.col, c < 0);
+        ctx.restore();
+      }
+
+      /* ---------- loop ---------- */
+      function frame(now) {
+        if (!lastT) lastT = now;
+        var dt = Math.min(0.05, (now - lastT) / 1000);  // clamp after tab switches
+        lastT = now;
+        elapsed += dt;
+
+        // spawning
+        var rate = 0;
+        if (phase === 'burst') rate = CFG.burstRate;
+        else if (phase === 'gentle') rate = CFG.gentleRate;
+        if (reduced) rate *= 0.3;
+
+        if (rate > 0 && petals.length < CFG.maxPetals) {
+          spawnAcc += rate * dt;
+          while (spawnAcc >= 1 && petals.length < CFG.maxPetals) {
+            spawnAcc -= 1;
+            petals.push(makePetal(phase === 'burst' && Math.random() < 0.18));
           }
-        });
+        }
 
-        layer.appendChild(petal);
+        // phase transitions
+        if (phase === 'burst' && elapsed * 1000 > CFG.burstMs) phase = 'gentle';
+        else if (phase === 'gentle' && elapsed * 1000 > CFG.burstMs + CFG.gentleMs) phase = 'draining';
+
+        layers.far.ctx.clearRect(0, 0, W, H);
+        layers.mid.ctx.clearRect(0, 0, W, H);
+        layers.near.ctx.clearRect(0, 0, W, H);
+
+        for (var i = petals.length - 1; i >= 0; i--) {
+          var p = petals[i];
+          step(p, dt, elapsed);
+          if (p.y > H + p.size * 2 || p.x < -W * 0.35 || p.x > W * 1.35) {
+            petals.splice(i, 1);
+            continue;
+          }
+          draw(p.z < 0.34 ? layers.far.ctx : (p.z < 0.72 ? layers.mid.ctx : layers.near.ctx), p);
+        }
+
+        if (phase === 'draining' && petals.length === 0) {
+          raf = null;
+          return;
+        }
+        raf = requestAnimationFrame(frame);
+      }
+
+      /* ---------- plumbing ---------- */
+      function sizeCanvas(c) {
+        c.el.width = Math.round(W * dpr);
+        c.el.height = Math.round(H * dpr);
+        c.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function resize() {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        dpr = Math.min(2, window.devicePixelRatio || 1);
+        if (layers.far) { sizeCanvas(layers.far); sizeCanvas(layers.mid); sizeCanvas(layers.near); }
+      }
+
+      function init() {
+        if (layers.far) return true;
+        var f = document.getElementById('flowerFar'),
+            m = document.getElementById('flowerMid'),
+            n = document.getElementById('flowerNear');
+        if (!f || !m || !n) return false;
+        layers.far  = { el: f, ctx: f.getContext('2d') };
+        layers.mid  = { el: m, ctx: m.getContext('2d') };
+        layers.near = { el: n, ctx: n.getContext('2d') };
+
+        // thin out on small screens so phones stay at 60fps
+        if (window.innerWidth < 700) CFG.maxPetals = 140;
+
+        resize();
+        window.addEventListener('resize', resize);
+        return true;
       }
 
       function start() {
-        if (running) return;
-        layer = document.getElementById('petalLayer');
-        if (!layer) return;
-        running = true;
+        // URL overrides for quick tuning: ?flowers=off|light|heavy|forever
+        var mode = (location.search.match(/[?&]flowers=([a-z]+)/i) || [])[1];
+        if (mode === 'off') return;
+        if (mode === 'heavy')   { CFG.burstRate = 90; CFG.maxPetals = 420; CFG.burstMs = 9000; }
+        if (mode === 'light')   { CFG.burstRate = 18; CFG.gentleRate = 3; }
+        if (mode === 'forever') { CFG.gentleMs = 1e9; }
 
-        var burstInterval = reduced ? CONFIG.burstInterval * 4 : CONFIG.burstInterval;
-        var gentleInterval = reduced ? CONFIG.gentleInterval * 3 : CONFIG.gentleInterval;
-
-        // A handful already in the air so the shower doesn't start from nothing
-        for (var i = 0; i < (reduced ? 4 : 14); i++) spawn();
-
-        burstTimer = setInterval(spawn, burstInterval);
-
-        phaseTimer = setTimeout(function () {
-          clearInterval(burstTimer);
-          burstTimer = null;
-          gentleTimer = setInterval(spawn, gentleInterval);
-
-          phaseTimer = setTimeout(stop, CONFIG.gentleDuration);
-        }, CONFIG.burstDuration);
+        if (!init()) return;
+        if (phase === 'burst' || phase === 'gentle') return;
+        phase = 'burst';
+        elapsed = 0;
+        lastT = 0;
+        spawnAcc = 0;
+        // seed some already in flight so it doesn't start from an empty sky
+        for (var i = 0; i < (reduced ? 6 : 26); i++) {
+          var p = makePetal(false);
+          p.y = rand(-H * 0.5, H * 0.6);
+          petals.push(p);
+        }
+        if (!raf) raf = requestAnimationFrame(frame);
       }
 
-      // Stops spawning; petals already falling finish their journey
       function stop() {
-        running = false;
-        if (burstTimer) { clearInterval(burstTimer); burstTimer = null; }
-        if (gentleTimer) { clearInterval(gentleTimer); gentleTimer = null; }
-        if (phaseTimer) { clearTimeout(phaseTimer); phaseTimer = null; }
+        phase = 'draining';
       }
 
-      return { start: start, stop: stop, config: CONFIG };
+      if (window.console && console.log) {
+        console.log('%cGodavari Magazine — ' + VERSION, 'color:#E8620A;font-weight:bold');
+      }
+
+      // Safety net: if the flipbook script throws before the curtain
+      // sequence reaches us, the flowers still run.
+      window.addEventListener('load', function () {
+        setTimeout(function () { if (phase === 'idle') start(); }, 7000);
+      });
+
+      return { start: start, stop: stop, config: CFG, version: VERSION };
     })();
   </script>
 
   <script>
     jQuery(document).ready(function () {
-      // Start the inaugural curtain opening sequence
-      setTimeout(function() {
-        // Fade out the title first
-        $("#magazineTitle").addClass("fade-out");
-        
-        // After title fades, start the rope pulling animation and open curtains
-        setTimeout(function() {
-          // Add the curtain opening class to trigger the upward pull animation
-          $("#curtainContainer").addClass("curtain-open");
+      Curtain.build();
 
-          // Shower flowers as the curtains draw apart
-          FlowerShower.start();
-          
-          // Initialize flipbook after curtain starts gathering
-          setTimeout(function() {
-            //uses source from online(make sure the file has CORS access enabled if used in cross domain)
-            var pdf = 'https://murtymalladi.github.io/godavari-magazine/static/magazine.pdf';
-            var options = {
-              height: 1000,
-              duration: 700,
-              backgroundColor: "#2F2F2F"
-            };
-            var flipBook = $("#flipbookContainer").flipBook(pdf, options);
-            
-            // Show the flipbook as curtain finishes gathering
-            setTimeout(function() {
-              $("#flipbookContainer").addClass("show");
-              
-              // Remove curtain system after reveal is complete
-              setTimeout(function() {
-                $("#curtainContainer").fadeOut(800, function() {
-                  $(this).remove();
-                });
-              }, 1200);
-              
-            }, 800);
-            
-          }, 1000); // Wait 1s for curtain gathering to be visible
-        }, 1200); // Wait 1.2s for title to fade completely
-      }, 2000); // Wait 2s before starting the inaugural sequence
+      var opened = false;
+
+      function beginOpening(withSound) {
+        if (opened) return;
+        opened = true;
+
+        if (withSound) {
+          Sound.start();
+          $("#muteBtn").addClass("show");
+        }
+        $("#enterGate").remove();
+        $("#enterPrompt").addClass("hide");
+
+        setTimeout(function () {
+          $("#magazineTitle").addClass("fade-out");
+
+          setTimeout(function () {
+            Curtain.open(function () {
+              // Fires when the cloth has actually settled at the sides
+              Sound.fadeOut();
+              $("#curtainContainer").fadeOut(900, function () { $(this).remove(); });
+              $("#muteBtn").removeClass("show");
+            });
+            FlowerShower.start();
+
+            // Build the flipbook behind the opening curtain
+            setTimeout(function () {
+              var pdf = 'https://murtymalladi.github.io/godavari-magazine/static/magazine.pdf';
+              var options = { height: 1000, duration: 700, backgroundColor: "#2F2F2F" };
+              $("#flipbookContainer").flipBook(pdf, options);
+              setTimeout(function () { $("#flipbookContainer").addClass("show"); }, 700);
+            }, 900);
+
+          }, 1200);
+        }, 400);
+      }
+
+      $("#enterGate").on("click touchend", function (e) {
+        e.preventDefault();
+        beginOpening(true);
+      });
+
+      $("#muteBtn").on("click", function (e) {
+        e.stopPropagation();
+        $(this).html(Sound.toggleMute() ? "&#9834;" : "&#9835;");
+      });
+
+      // If nobody taps, open anyway after a while — silently, since
+      // the browser will not let us start audio without a gesture.
+      setTimeout(function () { beginOpening(false); }, 9000);
     });
   </script>
 
